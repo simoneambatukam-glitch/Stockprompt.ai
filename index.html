@@ -761,7 +761,13 @@
                         body: JSON.stringify(payload)
                     });
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        // Ambil pesan asli dari Google (mis. "API has not been used in project...") biar ketahuan penyebabnya
+                        let detail = '';
+                        try {
+                            const body = await response.json();
+                            detail = (body && body.error && body.error.message) ? body.error.message : '';
+                        } catch (e) { /* abaikan */ }
+                        throw new Error(`HTTP error! status: ${response.status}` + (detail ? ' - ' + detail : ''));
                     }
                     return await response.json();
                 } catch (error) {
@@ -992,19 +998,24 @@
             showToast(v ? 'API key Gemini tersimpan!' : 'API key dihapus — kembali mode lokal.');
         }
 
-        // Ambil kode HTTP dari error (mis. "HTTP error! status: 400" -> "HTTP 400")
+        // Ambil kode HTTP + pesan asli Google dari error (mis. "HTTP 403 - Generative Language API has not been used...")
         function shortErr(e) {
-            const m = String((e && e.message) || e || '').match(/status:\s*(\d+)/);
-            return m ? ('HTTP ' + m[1]) : (String((e && e.message) || 'jaringan').slice(0, 60));
+            const raw = String((e && e.message) || e || '');
+            const m = raw.match(/status:\s*(\d+)\s*-?\s*(.*)/);
+            if (m) {
+                const msg = (m[2] || '').trim();
+                return 'HTTP ' + m[1] + (msg ? ': ' + msg.slice(0, 110) : '');
+            }
+            return raw.slice(0, 80) || 'jaringan';
         }
 
-        // Tes key langsung ke Gemini — tanpa retry lama, hasilnya langsung kelihatan
+        // Tes key langsung ke Gemini — pakai model stabil (bukan preview) biar ketahuan key-nya yang bermasalah atau modelnya
         async function testApiKey() {
             const btn = document.getElementById('btn-test-key');
             if (!apiKey) { showToast('Isi API key dulu, baru tes.', 'error'); return; }
             if (btn) { btn.disabled = true; btn.innerHTML = 'Ngetes...'; }
             try {
-                const res = await callGeminiWithRetry('gemini-3-flash-preview', {
+                const res = await callGeminiWithRetry('gemini-3.5-flash-lite', {
                     contents: [{ parts: [{ text: 'Reply with OK.' }] }],
                     generationConfig: { maxOutputTokens: 8 }
                 }, 0);
