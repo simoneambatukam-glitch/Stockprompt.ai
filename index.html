@@ -390,6 +390,7 @@
                         <div class="flex gap-2">
                             <input id="gemini-api-key" type="password" placeholder="Tempel API key gratis dari AI Studio..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500">
                             <button onclick="saveApiKey()" class="shrink-0 px-3 py-2 rounded-lg bg-brand-500 hover:bg-brand-400 text-dark-950 text-xs font-bold transition">Simpan</button>
+                            <button id="btn-test-key" onclick="testApiKey()" class="shrink-0 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700">Tes</button>
                         </div>
                         <p class="text-[11px] text-slate-500 mt-1.5">Tanpa key, judul &amp; keyword dibuat lokal otomatis. Dengan key gratis, hasilnya dari AI (lebih bagus). Ambil key gratis: <a href="https://aistudio.google.com/apikey" target="_blank" class="text-brand-400 hover:underline">aistudio.google.com/apikey</a></p>
                     </div>
@@ -965,9 +966,14 @@
             updateApiKeyStatus();
         });
 
-        function updateApiKeyStatus() {
+        function updateApiKeyStatus(note) {
             const el = document.getElementById('api-key-status');
             if (!el) return;
+            if (note) {
+                el.textContent = note;
+                el.className = 'text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30';
+                return;
+            }
             if (apiKey) {
                 el.textContent = 'Terpasang — mode AI';
                 el.className = 'text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
@@ -984,6 +990,34 @@
             else localStorage.removeItem('stockprompt-gemini-key');
             updateApiKeyStatus();
             showToast(v ? 'API key Gemini tersimpan!' : 'API key dihapus — kembali mode lokal.');
+        }
+
+        // Ambil kode HTTP dari error (mis. "HTTP error! status: 400" -> "HTTP 400")
+        function shortErr(e) {
+            const m = String((e && e.message) || e || '').match(/status:\s*(\d+)/);
+            return m ? ('HTTP ' + m[1]) : (String((e && e.message) || 'jaringan').slice(0, 60));
+        }
+
+        // Tes key langsung ke Gemini — tanpa retry lama, hasilnya langsung kelihatan
+        async function testApiKey() {
+            const btn = document.getElementById('btn-test-key');
+            if (!apiKey) { showToast('Isi API key dulu, baru tes.', 'error'); return; }
+            if (btn) { btn.disabled = true; btn.innerHTML = 'Ngetes...'; }
+            try {
+                const res = await callGeminiWithRetry('gemini-3-flash-preview', {
+                    contents: [{ parts: [{ text: 'Reply with OK.' }] }],
+                    generationConfig: { maxOutputTokens: 8 }
+                }, 0);
+                const t = res && res.candidates && res.candidates[0] && res.candidates[0].content && res.candidates[0].content.parts && res.candidates[0].content.parts[0] && res.candidates[0].content.parts[0].text;
+                if (t) { updateApiKeyStatus(); showToast('Key OK — mode AI aktif!'); }
+                else throw new Error('Respons kosong');
+            } catch (e) {
+                const s = shortErr(e);
+                updateApiKeyStatus('Key gagal: ' + s);
+                showToast('Key gagal (' + s + '). Cek lagi key di AI Studio.', 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = 'Tes'; }
+            }
         }
 
         // Fallback lokal: bikin judul SEO + tepat 49 keyword tanpa API (dipakai kalau Gemini gagal / tanpa key)
@@ -1118,7 +1152,9 @@ Return JSON with:
                 document.getElementById('output-title').value = local.title;
                 document.getElementById('output-keywords').value = local.keywords.join(', ');
                 document.getElementById('keyword-count').innerText = local.keywords.length;
-                showToast('Dibuat lokal tanpa AI — pasang API key gratis buat hasil AI yang lebih bagus.', 'success');
+                const s = shortErr(e);
+                updateApiKeyStatus('AI gagal: ' + s);
+                showToast('Mode AI gagal (' + s + ') — hasil lokal dipakai.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-lg"></i><span>MAKE PROMPT SEKARANG</span>`;
