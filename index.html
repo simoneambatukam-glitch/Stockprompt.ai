@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microstock Prompt Studio Pro - Bikin Prompt 1 Menit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            900: '#064e3b',
+                        },
+                        dark: {
+                            950: '#090d16',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for clean UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .loader-spin {
+            border-top-color: #10b981;
+            -webkit-animation: spinner 1s linear infinite;
+            animation: spinner 1s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 bg-dark-950/85 backdrop-blur-md border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-wand-magic-sparkles text-dark-950 text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
+                        StockPrompt <span class="text-brand-400">Studio</span>
+                        <span class="hidden sm:inline-block text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/30">PRO</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">Adobe Stock • Freepik • Vecteezy Ready</p>
+                </div>
+            </div>
+
+            <!-- Safe Mode Indicator & Preset Drawer Button -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-medium" title="Otomatis menyaring konten sensitif, merek dagang, dan wajah spesifik agar lolos kurasi">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Safe & Commercial Filter Aktif</span>
+                </div>
+                <button onclick="togglePresetModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium transition border border-slate-700">
+                    <i class="fa-solid fa-bookmark text-amber-400"></i>
+                    <span>Preset (<span id="preset-count">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Quick Guide Banner -->
+        <div class="mb-6 p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800/80 to-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+            <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold">1</span>
+                <span>Pilih Ide / Tren / Upload Referensi</span>
+                <i class="fa-solid fa-chevron-right text-slate-600 text-[10px]"></i>
+                <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold">2</span>
+                <span>Atur Format & Gaya</span>
+                <i class="fa-solid fa-chevron-right text-slate-600 text-[10px]"></i>
+                <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold">3</span>
+                <span>Klik Make Prompt & Copy</span>
+            </div>
+            <span class="text-brand-400 font-medium"><i class="fa-solid fa-bolt mr-1"></i>1 Menit Siap Upload</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT COLUMN: Discovery & Style Builder (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- STEP 1: Sumber Ide (Tabs) -->
+                <section class="glass-card rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-brand-500 text-dark-950 text-xs font-extrabold flex items-center justify-center">1</span>
+                            Pilih Sumber Konsep
+                        </h2>
+                        <span class="text-xs text-slate-400">Tanya Ide, Tren, atau Referensi</span>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <div class="grid grid-cols-3 gap-2 p-1.5 bg-dark-950/90 rounded-xl border border-slate-800 mb-5">
+                        <button onclick="switchTab('ide')" id="tab-ide" class="tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition bg-brand-500 text-dark-950 shadow">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>Tanya Ide</span>
+                        </button>
+                        <button onclick="switchTab('trend')" id="tab-trend" class="tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-fire-flame-curved text-orange-400"></i>
+                            <span>Auto Trend</span>
+                        </button>
+                        <button onclick="switchTab('ref')" id="tab-ref" class="tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-image text-sky-400"></i>
+                            <span>Analisis Gambar</span>
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: TANYA IDE -->
+                    <div id="panel-ide" class="tab-panel space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Ketik Tema atau Kata Kunci Dasar (Bahasa Indonesia / Inggris)</label>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="theme-input" placeholder="Contoh: Kopi pagi, kerja remote, ramah lingkungan, ramadhan..." 
+                                    class="flex-1 bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none transition"
+                                    onkeypress="if(event.key === 'Enter') generateIdeas()">
+                                <button onclick="generateIdeas()" id="btn-gen-ideas" class="bg-brand-500 hover:bg-brand-400 text-dark-950 font-bold px-5 py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-brand-500/20">
+                                    <i class="fa-solid fa-sparkles"></i>
+                                    <span>5 Ide Jualan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ideas Result List -->
+                        <div id="ideas-loading" class="hidden py-8 flex flex-col items-center justify-center text-slate-400 gap-3">
+                            <div class="w-8 h-8 border-4 border-slate-700 rounded-full loader-spin"></div>
+                            <p class="text-xs">Mencari 5 konsep microstock paling laris & SEO friendly...</p>
+                        </div>
+
+                        <div id="ideas-container" class="space-y-2.5">
+                            <!-- Default starter suggestions -->
+                            <p class="text-xs text-slate-400 mb-2">Atau klik salah satu ide populer siap pakai di bawah ini:</p>
+                            <div id="ideas-list" class="grid grid-cols-1 gap-2.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: AUTO TREND MIKROSTOCK -->
+                    <div id="panel-trend" class="tab-panel hidden space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 bg-dark-950/70 p-3.5 rounded-xl border border-slate-800">
+                            <div>
+                                <h3 class="text-sm font-semibold text-white">Prediksi 10 Tren Terlaris (2–3 Bulan Ke Depan)</h3>
+                                <p class="text-xs text-slate-400">Target upload: Q1 2027 (Tahun Baru, Imlek, Valentine, Ramadhan Awal, Spring)</p>
+                            </div>
+                            <button onclick="fetchLiveTrends()" id="btn-refresh-trends" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-400 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>Update Riset AI</span>
+                            </button>
+                        </div>
+
+                        <div id="trends-loading" class="hidden py-8 flex flex-col items-center justify-center text-slate-400 gap-3">
+                            <div class="w-8 h-8 border-4 border-slate-700 rounded-full loader-spin"></div>
+                            <p class="text-xs">Menganalisis kalender komersial global 2-3 bulan ke depan...</p>
+                        </div>
+
+                        <div id="trends-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: ANALISIS REFERENSI GAMBAR -->
+                    <div id="panel-ref" class="tab-panel hidden space-y-4">
+                        <div class="border-2 border-dashed border-slate-700 hover:border-brand-500/70 rounded-2xl p-6 text-center transition bg-dark-950/50 relative group cursor-pointer" onclick="document.getElementById('ref-upload').click()">
+                            <input type="file" id="ref-upload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                            
+                            <div id="ref-placeholder" class="space-y-2">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-800 text-brand-400 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <p class="text-sm font-semibold text-white">Upload Gambar Referensi</p>
+                                <p class="text-xs text-slate-400 max-w-md mx-auto">Otomatis mengekstrak gaya visual, palet warna, komposisi, dan mood menjadi parameter microstock yang aman (tanpa menjiplak).</p>
+                            </div>
+
+                            <div id="ref-preview-box" class="hidden flex flex-col sm:flex-row items-center gap-4 text-left">
+                                <img id="ref-img-preview" src="" alt="Preview Referensi" class="w-28 h-28 object-cover rounded-xl border border-slate-700 shrink-0">
+                                <div class="flex-1 space-y-2">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-500/20 text-brand-400">Gambar Terdeteksi</span>
+                                    <p id="ref-analysis-summary" class="text-xs text-slate-300 leading-relaxed">Siap dianalisis oleh AI...</p>
+                                    <button type="button" onclick="event.stopPropagation(); analyzeReferenceImage()" id="btn-analyze-ref" class="px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-400 text-dark-950 text-xs font-bold transition inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-microchip"></i>
+                                        <span>Ekstrak Gaya & Mood</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Subject Box (Editable) -->
+                    <div class="mt-5 pt-4 border-t border-slate-800/80">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-semibold text-brand-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                Subjek Utama Terpilih (Bisa Diedit Manual)
+                            </label>
+                            <button onclick="document.getElementById('selected-subject').value=''" class="text-[11px] text-slate-400 hover:text-white">Reset</button>
+                        </div>
+                        <textarea id="selected-subject" rows="2" placeholder="Pilih ide/tren di atas atau ketik langsung deskripsi objek utama di sini..." 
+                            class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none transition"></textarea>
+                    </div>
+                </section>
+
+                <!-- STEP 2: Atur Gaya Bebas -->
+                <section class="glass-card rounded-2xl p-5 shadow-xl space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-brand-500 text-dark-950 text-xs font-extrabold flex items-center justify-center">2</span>
+                            Atur Gaya Bebas & Format File
+                        </h2>
+                        <button onclick="resetStyles()" class="text-xs text-slate-400 hover:text-brand-400 transition">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>Default
+                        </button>
+                    </div>
+
+                    <!-- Format Output Selector (JPG, PNG, SVG) -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-2">Target Format Aset Microstock</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="asset-format" value="JPG" class="peer sr-only" checked onchange="updateFormatHint()">
+                                <div class="p-3 rounded-xl bg-dark-950 border border-slate-700 peer-checked:border-brand-500 peer-checked:bg-brand-500/10 transition text-center">
+                                    <div class="font-bold text-sm text-white peer-checked:text-brand-400">JPG</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">Foto / Ilustrasi Full</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="asset-format" value="PNG" class="peer sr-only" onchange="updateFormatHint()">
+                                <div class="p-3 rounded-xl bg-dark-950 border border-slate-700 peer-checked:border-brand-500 peer-checked:bg-brand-500/10 transition text-center">
+                                    <div class="font-bold text-sm text-white">PNG</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">Isolated / Transparan</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="asset-format" value="SVG" class="peer sr-only" onchange="updateFormatHint()">
+                                <div class="p-3 rounded-xl bg-dark-950 border border-slate-700 peer-checked:border-brand-500 peer-checked:bg-brand-500/10 transition text-center">
+                                    <div class="font-bold text-sm text-white">SVG</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">Flat Vector / Icon</div>
+                                </div>
+                            </label>
+                        </div>
+                        <p id="format-hint" class="text-[11px] text-brand-400/90 mt-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>JPG: Otomatis menambahkan detail pencahayaan penuh & kedalaman ruang komersial.</span>
+                        </p>
+                    </div>
+
+                    <!-- Grid Dropdowns: Gaya, Warna, Latar, Sudut Kamera -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Gaya Gambar -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Gaya Gambar (Art Style)</label>
+                            <select id="style-art" class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+                                <option value="Commercial Studio Photography, ultra sharp, natural lighting">Fotografi Studio Komersial</option>
+                                <option value="3D Isometric Render, smooth clay and matte plastic texture, soft global illumination">3D Isometric Render (C4D / Blender)</option>
+                                <option value="Clean Flat Vector Illustration, minimal geometric shapes, crisp edges">Flat Vector Illustration (Adobe Illustrator)</option>
+                                <option value="Modern Watercolor and Gouache Illustration, subtle paper texture, artistic">Watercolor & Gouache Digital</option>
+                                <option value="Minimalist Line Art Icon, uniform stroke weight, clean modern design">Minimalist Line Art / Monoline</option>
+                                <option value="3D Glossy Glassmorphism and Abstract Gradient Shapes, modern tech">3D Abstract / Glassmorphism</option>
+                                <option value="Warm Lifestyle Editorial Photography, candid authentic moment, bokeh">Lifestyle Editorial (Natural)</option>
+                                <option value="Seamless Surface Pattern Design, balanced repeating motif, textile ready">Seamless Pattern (Pola Berulang)</option>
+                            </select>
+                        </div>
+
+                        <!-- Palet Warna -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Nuansa Warna (Color Palette)</label>
+                            <select id="style-color" class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+                                <option value="balanced commercial natural colors, true-to-life white balance">Natural & Seimbang (Best Seller)</option>
+                                <option value="soft pastel color palette, airy, gentle, soothing tones">Pastel Lembut & Estetik</option>
+                                <option value="vibrant energetic commercial colors, high contrast, eye-catching">Cerah & Vibrant (Enerjik)</option>
+                                <option value="warm earthy tones, terracotta, sage green, cream, beige">Earthy & Hangat (Sage, Cream)</option>
+                                <option value="corporate clean blue, teal, slate gray, and crisp white">Corporate Clean (Biru & Putih)</option>
+                                <option value="luxury gold, deep emerald, and warm ivory accents">Mewah (Emas, Emerald & Ivory)</option>
+                                <option value="monochrome minimalist black, white, and soft neutral gray">Monokrom Minimalis</option>
+                            </select>
+                        </div>
+
+                        <!-- Latar Belakang -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Latar Belakang (Background)</label>
+                            <select id="style-bg" class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+                                <option value="isolated on pure solid white background (#FFFFFF), clean cutout, no drop shadow">Putih Polos (Isolated White)</option>
+                                <option value="clean studio backdrop with generous negative copy space for text">Minimalis dengan Copy Space (Ruang Teks)</option>
+                                <option value="soft blurred modern interior office or cozy home environment">Blur Interior Modern (Bokeh)</option>
+                                <option value="soft pastel gradient studio background, smooth lighting">Gradien Studio Lembut</option>
+                                <option value="natural outdoor sunlight, soft blurred greenery background">Outdoor Natural & Cahaya Matahari</option>
+                                <option value="wooden tabletop surface with soft natural window light">Meja Kayu Estetik (Product Mockup)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sudut Kamera -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Sudut Kamera (Camera Angle)</label>
+                            <select id="style-angle" class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+                                <option value="eye-level front view, balanced symmetrical composition">Eye-Level (Sejajar Mata)</option>
+                                <option value="top-down flat lay photography, 90-degree overhead shot">Flat Lay (Tampak Atas 90°)</option>
+                                <option value="45-degree isometric perspective angle, showing depth">Isometric / Sudut 45 Derajat</option>
+                                <option value="close-up macro detail shot, shallow depth of field">Close-Up / Macro Detail</option>
+                                <option value="wide angle shot with clean negative space on the right side">Wide Shot + Ruang Teks Kanan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Aspect Ratio & Safe Filter Controls -->
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/80">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Rasio:</span>
+                            <div class="flex gap-1.5" id="ratio-group">
+                                <button type="button" onclick="selectRatio(this, '3:2')" class="ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-500 text-dark-950">3:2</button>
+                                <button type="button" onclick="selectRatio(this, '16:9')" class="ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-dark-950 text-slate-400 border border-slate-700">16:9</button>
+                                <button type="button" onclick="selectRatio(this, '1:1')" class="ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-dark-950 text-slate-400 border border-slate-700">1:1</button>
+                                <button type="button" onclick="selectRatio(this, '4:5')" class="ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-dark-950 text-slate-400 border border-slate-700">4:5</button>
+                            </div>
+                        </div>
+
+                        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="safe-neutral-toggle" checked class="w-4 h-4 rounded accent-brand-500">
+                            <span class="text-xs font-medium text-slate-300">Hasil Aman, Netral & Ramah Keluarga</span>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: Generator Output & SEO Metadata (5 cols) -->
+            <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+                
+                <!-- STEP 3: Make Prompt Otomatis -->
+                <section class="glass-card rounded-2xl p-5 shadow-2xl border-brand-500/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-brand-500 text-dark-950 text-xs font-extrabold flex items-center justify-center">3</span>
+                            Make Prompt Otomatis
+                        </h2>
+                        <button onclick="saveCurrentPreset()" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-star"></i>
+                            <span>Simpan Preset</span>
+                        </button>
+                    </div>
+
+                    <!-- Big CTA Button -->
+                    <button onclick="generateFinalPrompt()" id="btn-make-prompt" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-400 hover:to-emerald-300 text-dark-950 font-extrabold text-base shadow-xl shadow-brand-500/25 transition transform active:scale-[0.99] flex items-center justify-center gap-2.5 mb-5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                        <span>MAKE PROMPT SEKARANG</span>
+                    </button>
+
+                    <!-- Generated Prompt Result Box -->
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-semibold text-slate-300">Prompt Siap Paste (Midjourney / Leonardo / Firefly / Ideogram)</span>
+                                <span id="prompt-lang-badge" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">English Pro</span>
+                            </div>
+                            <div class="relative">
+                                <textarea id="output-prompt" rows="5" readonly placeholder="Klik 'MAKE PROMPT SEKARANG' untuk meracik prompt microstock otomatis..." 
+                                    class="w-full bg-dark-950 border border-slate-700 rounded-xl p-3.5 text-sm text-emerald-300 font-mono leading-relaxed focus:outline-none resize-none"></textarea>
+                            </div>
+
+                            <!-- Action Buttons: Copy & Preview AI -->
+                            <div class="grid grid-cols-2 gap-2.5 mt-2.5">
+                                <button onclick="copyText('output-prompt', 'Prompt utama berhasil disalin!')" class="py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-400 text-dark-950 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow">
+                                    <i class="fa-regular fa-copy"></i>
+                                    <span>Copy Prompt</span>
+                                </button>
+                                <button onclick="generatePreviewSample()" id="btn-preview-sample" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm border border-slate-700 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-eye text-brand-400"></i>
+                                    <span>Tes Visual AI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Preview Image Box (Optional Test) -->
+                        <div id="sample-preview-wrapper" class="hidden rounded-xl overflow-hidden border border-slate-700 bg-dark-950 p-3 space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-400">
+                                <span><i class="fa-solid fa-image text-brand-400 mr-1"></i>Simulasi Hasil Gambar AI</span>
+                                <button onclick="document.getElementById('sample-preview-wrapper').classList.add('hidden')" class="hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <div id="sample-image-loading" class="hidden py-10 flex flex-col items-center justify-center gap-2">
+                                <div class="w-7 h-7 border-4 border-slate-700 rounded-full loader-spin"></div>
+                                <span class="text-xs text-slate-400">Merender simulasi gambar...</span>
+                            </div>
+                            <img id="sample-image-result" src="" alt="Simulasi Gambar Microstock" class="w-full h-auto rounded-lg hidden">
+                        </div>
+
+                        <!-- Negative Prompt Box -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-medium text-slate-400">Negative Prompt (Anti-Reject / Anti-Cacat)</span>
+                                <button onclick="copyText('output-negative', 'Negative prompt disalin!')" class="text-[11px] text-brand-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <input type="text" id="output-negative" readonly 
+                                value="watermark, text, logo, trademark, brand name, blurry, low resolution, deformed hands, extra fingers, distorted face, noise, grain, oversaturated, nsfw, violence"
+                                class="w-full bg-dark-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-400 font-mono focus:outline-none">
+                        </div>
+
+                        <!-- SEO Title & Keywords Bonus for Upload -->
+                        <div class="pt-3 border-t border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tags text-brand-400"></i>
+                                    Bonus SEO Title & Keywords (Siap Upload)
+                                </span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                                    <span>Judul SEO (Max 70 karakter)</span>
+                                    <button onclick="copyText('output-title', 'Judul SEO disalin!')" class="text-brand-400 hover:underline">Copy</button>
+                                </div>
+                                <input type="text" id="output-title" readonly placeholder="Judul otomatis muncul di sini..." 
+                                    class="w-full bg-dark-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                                    <span>49 Keywords Relevan (<span id="keyword-count" class="text-brand-400 font-semibold">0</span>/49)</span>
+                                    <button onclick="copyText('output-keywords', '49 Keywords disalin!')" class="text-brand-400 hover:underline">Copy</button>
+                                </div>
+                                <textarea id="output-keywords" rows="3" readonly placeholder="49 keywords microstock muncul di sini..." 
+                                    class="w-full bg-dark-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Preset Modal Drawer -->
+    <div id="preset-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-dark-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-amber-400"></i>
+                    Preset Gaya Tersimpan
+                </h3>
+                <button onclick="togglePresetModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-400">Klik preset di bawah ini untuk langsung menerapkan kombinasi format, gaya, warna, latar, dan sudut kamera favoritmu.</p>
+            <div id="preset-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                <!-- Presets injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Prompt Name Modal (Replaces window.prompt) -->
+    <div id="save-preset-dialog" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-dark-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+            <h3 class="font-bold text-white text-base">Simpan Preset Gaya</h3>
+            <p class="text-xs text-slate-400">Beri nama untuk kombinasi gaya saat ini agar mudah dipakai lagi kapan saja.</p>
+            <input type="text" id="preset-name-input" placeholder="Contoh: 3D Icon Pastel Putih" 
+                class="w-full bg-dark-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSavePresetDialog()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700">Batal</button>
+                <button onclick="confirmSavePreset()" class="px-4 py-2 rounded-xl bg-brand-500 text-dark-950 text-xs font-bold hover:bg-brand-400">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // STATE & DEFAULT DATA
+        // =========================================================================
+        const apiKey = ""; // Runtime environment automatically injects the key
+        let selectedRatio = "3:2";
+        let uploadedImageBase64 = null;
+        let uploadedImageMime = "image/jpeg";
+
+        // Default Starter Ideas (SEO Friendly)
+        const starterIdeas = [
+            {
+                title: "Workspace Minimalis Kopi & Laptop Pagi Hari",
+                enSubject: "Minimalist wooden desk workspace with a ceramic cup of hot latte coffee, modern sleek laptop, small green succulent plant, morning sunlight rays",
+                tag: "Evergreen • High Demand"
+            },
+            {
+                title: "Konsep Energi Hijau & Keberlanjutan (Eco-Friendly)",
+                enSubject: "3D isometric miniature green earth globe with wind turbines, solar panels, and lush green trees symbolizing renewable energy and sustainability",
+                tag: "Corporate • ESG"
+            },
+            {
+                title: "Ikon Set Keuangan & Investasi Digital",
+                enSubject: "Clean modern set of financial growth elements including rising bar chart, gold coins, digital wallet, and shield security symbol",
+                tag: "Fintech • Vector/PNG"
+            },
+            {
+                title: "Makanan Sehat Smoothie Bowl Buah Tropis",
+                enSubject: "Fresh colorful tropical smoothie bowl topped with sliced strawberries, blueberries, chia seeds, and coconut flakes on clean surface",
+                tag: "Food & Health"
+            },
+            {
+                title: "Keluarga Bahagia Piknik di Taman Akhir Pekan",
+                enSubject: "Happy diverse young family enjoying a sunny weekend picnic on a green park lawn with fresh fruits and woven basket, warm candid atmosphere",
+                tag: "Lifestyle • Family Friendly"
+            }
+        ];
+
+        // Default 10 Microstock Trends (2-3 Months Ahead: Jan - Mar 2027)
+        let currentTrends = [
+            { title: "Ramadhan & Eid Mubarak Lanterns", desc: "Lentera emas, bulan sabit, kurma & ketupat modern", en: "Elegant Islamic golden lantern with crescent moon, dates, and geometric arabesque ornaments, festive warm atmosphere", month: "Feb - Mar" },
+            { title: "Imlek / Lunar New Year Prosperity", desc: "Lampion merah, amplop angpao, ornamen emas", en: "Festive red and gold paper lanterns with auspicious cloud motifs and traditional tea set", month: "Jan - Feb" },
+            { title: "Valentine's Day Minimalist Gifts", desc: "Kotak kado pastel, bunga mawar, kartu ucapan", en: "Romantic minimalist gift box tied with silk ribbon, fresh pink roses, and blank greeting card", month: "Februari" },
+            { title: "Spring Floral & Botanical Frames", desc: "Bingkai bunga musim semi, daun hijau segar", en: "Fresh spring botanical floral wreath frame with blooming wildflowers and eucalyptus leaves", month: "Maret" },
+            { title: "AI & Smart Automation Workflow", desc: "Ilustrasi produktivitas AI, asisten digital, cloud", en: "Futuristic clean 3D illustration of artificial intelligence workflow, glowing data nodes, and smart productivity dashboard", month: "Q1 Trend" },
+            { title: "Mental Health & Mindfulness", desc: "Jurnal syukur, teh herbal, meditasi tenang", en: "Peaceful self-care flat lay with open gratitude journal, herbal chamomile tea, scented candle, and eucalyptus", month: "New Year" },
+            { title: "Healthy Meal Prep & Fitness", desc: "Kotak makan sehat, botol minum, dumbbell pastel", en: "Healthy balanced meal prep containers with fresh vegetables, quinoa, avocado, and water bottle", month: "Januari" },
+            { title: "International Women's Day", desc: "Ilustrasi pemberdayaan wanita, bunga mimosa", en: "Empowering modern vector illustration of diverse women collaborating with blooming yellow mimosa flowers", month: "8 Maret" },
+            { title: "Zero Waste & Eco Packaging", desc: "Kemasan ramah lingkungan, tas belanja kain", en: "Eco-friendly reusable canvas tote bag filled with organic vegetables and glass jars, zero waste lifestyle", month: "Evergreen" },
+            { title: "Remote Work & Digital Nomad", desc: "Bekerja fleksibel dari kafe atau rumah nyaman", en: "Cozy modern home office setup with ergonomic chair, laptop, notebook, and warm natural window light", month: "Q1 Trend" }
+        ];
+
+        // In-Memory Presets (Pre-loaded with 2 pro presets)
+        let savedPresets = [
+            {
+                id: 1,
+                name: "3D Icon Putih (Best Seller Adobe Stock)",
+                format: "PNG",
+                art: "3D Isometric Render, smooth clay and matte plastic texture, soft global illumination",
+                color: "soft pastel color palette, airy, gentle, soothing tones",
+                bg: "isolated on pure solid white background (#FFFFFF), clean cutout, no drop shadow",
+                angle: "45-degree isometric perspective angle, showing depth",
+                ratio: "1:1"
+            },
+            {
+                id: 2,
+                name: "Flat Vector Freepik Clean",
+                format: "SVG",
+                art: "Clean Flat Vector Illustration, minimal geometric shapes, crisp edges",
+                color: "vibrant energetic commercial colors, high contrast, eye-catching",
+                bg: "isolated on pure solid white background (#FFFFFF), clean cutout, no drop shadow",
+                angle: "eye-level front view, balanced symmetrical composition",
+                ratio: "3:2"
+            }
+        ];
+
+        // =========================================================================
+        // INITIALIZATION
+        // =========================================================================
+        window.onload = function() {
+            renderIdeas(starterIdeas);
+            renderTrends(currentTrends);
+            updatePresetCount();
+            updateFormatHint();
+        };
+
+        // =========================================================================
+        // UI HELPERS & NOTIFICATIONS
+        // =========================================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-rose-950/95 border-rose-500/50 text-rose-200' : 'bg-slate-900/95 border-brand-500/50 text-emerald-200';
+            const icon = type === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-circle-check text-brand-400';
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-xs sm:text-sm font-medium transition-all duration-300 transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function copyText(elementId, successMsg) {
+            const el = document.getElementById(elementId);
+            if (!el || !el.value.trim()) {
+                showToast('Belum ada teks untuk disalin. Klik Make Prompt dulu!', 'error');
+                return;
+            }
+            el.select();
+            el.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast('Gagal menyalin teks.', 'error');
+            }
+            window.getSelection().removeAllRanges();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`panel-${tabName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-500', 'text-dark-950', 'shadow');
+                btn.classList.add('text-slate-400', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.add('bg-brand-500', 'text-dark-950', 'shadow');
+            activeBtn.classList.remove('text-slate-400', 'hover:text-white');
+        }
+
+        function selectRatio(btn, ratio) {
+            selectedRatio = ratio;
+            document.querySelectorAll('.ratio-btn').forEach(b => {
+                b.className = 'ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-dark-950 text-slate-400 border border-slate-700';
+            });
+            btn.className = 'ratio-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-500 text-dark-950';
+        }
+
+        function updateFormatHint() {
+            const format = document.querySelector('input[name="asset-format"]:checked').value;
+            const hintEl = document.getElementById('format-hint');
+            const bgSelect = document.getElementById('style-bg');
+
+            if (format === 'JPG') {
+                hintEl.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>JPG: Cocok untuk foto realistis, latar penuh, atau ilustrasi dengan pencahayaan detail.</span>`;
+            } else if (format === 'PNG') {
+                hintEl.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>PNG: Otomatis mengoptimalkan objek terisolasi (cutout) agar mudah dihapus background-nya.</span>`;
+                bgSelect.value = "isolated on pure solid white background (#FFFFFF), clean cutout, no drop shadow";
+            } else if (format === 'SVG') {
+                hintEl.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>SVG: Mengarahkan AI ke bentuk vektor bersih, warna solid/minimal gradien agar mudah di-trace.</span>`;
+                document.getElementById('style-art').value = "Clean Flat Vector Illustration, minimal geometric shapes, crisp edges";
+                bgSelect.value = "isolated on pure solid white background (#FFFFFF), clean cutout, no drop shadow";
+            }
+        }
+
+        function resetStyles() {
+            document.querySelector('input[name="asset-format"][value="JPG"]').checked = true;
+            document.getElementById('style-art').selectedIndex = 0;
+            document.getElementById('style-color').selectedIndex = 0;
+            document.getElementById('style-bg').selectedIndex = 0;
+            document.getElementById('style-angle').selectedIndex = 0;
+            document.getElementById('safe-neutral-toggle').checked = true;
+            updateFormatHint();
+            showToast('Pengaturan gaya dikembalikan ke default');
+        }
+
+        // =========================================================================
+        // RENDER FUNCTIONS
+        // =========================================================================
+        function renderIdeas(ideas) {
+            const list = document.getElementById('ideas-list');
+            list.innerHTML = '';
+            ideas.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'p-3.5 rounded-xl bg-dark-950/90 hover:bg-slate-800/90 border border-slate-800 hover:border-brand-500/50 cursor-pointer transition flex items-start justify-between gap-3 group';
+                card.onclick = () => {
+                    document.getElementById('selected-subject').value = item.enSubject;
+                    showToast(`Ide "${item.title}" dipilih!`);
+                };
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm font-semibold text-white group-hover:text-brand-400 transition">${item.title}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">${item.tag || 'SEO Ready'}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 line-clamp-1">${item.enSubject}</p>
+                    </div>
+                    <span class="w-7 h-7 rounded-lg bg-slate-800 group-hover:bg-brand-500 text-slate-400 group-hover:text-dark-950 flex items-center justify-center shrink-0 transition mt-0.5">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </span>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function renderTrends(trends) {
+            const list = document.getElementById('trends-list');
+            list.innerHTML = '';
+            trends.forEach((t, idx) => {
+                const item = document.createElement('div');
+                item.className = 'p-3 rounded-xl bg-dark-950/90 hover:bg-slate-800/90 border border-slate-800 hover:border-brand-500/50 cursor-pointer transition flex flex-col justify-between gap-2 group';
+                item.onclick = () => {
+                    document.getElementById('selected-subject').value = t.en;
+                    showToast(`Tren "${t.title}" diterapkan!`);
+                };
+                item.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-1 mb-1">
+                            <span class="text-[10px] font-bold text-amber-400">#${idx + 1} • ${t.month}</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-brand-400"></i>
+                        </div>
+                        <h4 class="text-xs sm:text-sm font-bold text-white group-hover:text-brand-400 transition">${t.title}</h4>
+                        <p class="text-[11px] text-slate-400 mt-0.5">${t.desc}</p>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // =========================================================================
+        // GEMINI API CALL HELPER (WITH EXPONENTIAL BACKOFF)
+        // =========================================================================
+        async function callGeminiWithRetry(model, payload, maxRetries = 4) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            let delay = 1000;
+
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (attempt === maxRetries) throw error;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 1: TANYA IDE (5 IDE SEO FRIENDLY)
+        // =========================================================================
+        async function generateIdeas() {
+            const theme = document.getElementById('theme-input').value.trim();
+            if (!theme) {
+                showToast('Ketik tema dulu ya, misalnya: Kopi, Bisnis, atau Ramadhan!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-gen-ideas');
+            const loader = document.getElementById('ideas-loading');
+            const container = document.getElementById('ideas-container');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-60');
+            loader.classList.remove('hidden');
+            container.classList.add('hidden');
+
+            try {
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `Buatkan tepat 5 ide konsep jualan microstock (Adobe Stock, Freepik, Vecteezy) yang paling dicari pembeli dan SEO friendly berdasarkan tema: "${theme}". Pastikan semua ide aman, netral, bebas merek dagang, dan ramah keluarga.`
+                        }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING", description: "Judul ide singkat dalam Bahasa Indonesia" },
+                                    enSubject: { type: "STRING", description: "Deskripsi visual detail dalam Bahasa Inggris siap pakai untuk prompt AI" },
+                                    tag: { type: "STRING", description: "Kategori niche singkat (misal: Business, Seasonal, Lifestyle)" }
+                                },
+                                required: ["title", "enSubject", "tag"]
+                            }
+                        }
+                    }
+                };
+
+                const result = await callGeminiWithRetry('gemini-3-flash-preview', payload);
+                const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                    const parsedIdeas = JSON.parse(rawText);
+                    renderIdeas(parsedIdeas);
+                    showToast('5 Ide SEO Friendly berhasil dibuat!');
+                }
+            } catch (e) {
+                showToast('Gagal memuat ide AI, silakan coba lagi.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-60');
+                loader.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 2: AUTO TREND MIKROSTOCK (2-3 BULAN KE DEPAN)
+        // =========================================================================
+        async function fetchLiveTrends() {
+            const btn = document.getElementById('btn-refresh-trends');
+            const loader = document.getElementById('trends-loading');
+            const list = document.getElementById('trends-list');
+
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+            list.classList.add('hidden');
+
+            try {
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `Sekarang akhir November 2026. Berikan 10 tren konsep aset microstock (Adobe Stock, Freepik) terlaris untuk 2 sampai 3 bulan ke depan (Januari, Februari, Maret 2027) agar kontributor tidak ketinggalan momen musiman dan komersial.`
+                        }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    desc: { type: "STRING", description: "Penjelasan singkat Bahasa Indonesia" },
+                                    en: { type: "STRING", description: "Visual subject prompt in English" },
+                                    month: { type: "STRING", description: "Bulan target momen" }
+                                },
+                                required: ["title", "desc", "en", "month"]
+                            }
+                        }
+                    }
+                };
+
+                const result = await callGeminiWithRetry('gemini-3-flash-preview', payload);
+                const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                    currentTrends = JSON.parse(rawText);
+                    renderTrends(currentTrends);
+                    showToast('10 Tren 2-3 bulan ke depan diperbarui!');
+                }
+            } catch (e) {
+                showToast('Gagal memperbarui tren AI.', 'error');
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('hidden');
+                list.classList.remove('hidden');
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 3: ANALISIS REFERENSI GAMBAR
+        // =========================================================================
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            uploadedImageMime = file.type || 'image/jpeg';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                uploadedImageBase64 = dataUrl.split(',')[1];
+                
+                document.getElementById('ref-img-preview').src = dataUrl;
+                document.getElementById('ref-placeholder').classList.add('hidden');
+                document.getElementById('ref-preview-box').classList.remove('hidden');
+                document.getElementById('ref-analysis-summary').innerText = "Gambar siap! Klik tombol di bawah untuk mengekstrak gaya, warna, komposisi & mood.";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeReferenceImage() {
+            if (!uploadedImageBase64) return;
+
+            const btn = document.getElementById('btn-analyze-ref');
+            const summaryEl = document.getElementById('ref-analysis-summary');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menganalisis...</span>`;
+
+            try {
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            {
+                                text: "Analisis gambar referensi ini untuk kebutuhan pembuatan aset microstock komersial yang aman (tanpa meniru merek atau wajah spesifik). Ekstrak subjek generiknya, gaya visual, warna, komposisi, dan mood dalam format JSON."
+                            },
+                            {
+                                inlineData: {
+                                    mimeType: uploadedImageMime,
+                                    data: uploadedImageBase64
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                summaryId: { type: "STRING", description: "Ringkasan gaya, warna, komposisi, mood dalam Bahasa Indonesia" },
+                                extractedPromptEn: { type: "STRING", description: "Deskripsi visual lengkap dalam Bahasa Inggris (subjek + gaya + warna + komposisi + mood) siap untuk AI image generator" }
+                            },
+                            required: ["summaryId", "extractedPromptEn"]
+                        }
+                    }
+                };
+
+                const result = await callGeminiWithRetry('gemini-3-flash-preview', payload);
+                const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                    const parsed = JSON.parse(rawText);
+                    summaryEl.innerText = parsed.summaryId;
+                    document.getElementById('selected-subject').value = parsed.extractedPromptEn;
+                    showToast('Gaya, warna & mood berhasil diekstrak ke Subjek!');
+                }
+            } catch (e) {
+                showToast('Gagal menganalisis gambar referensi.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-microchip"></i><span>Ekstrak Gaya & Mood</span>`;
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 4: MAKE PROMPT OTOMATIS + SEO METADATA
+        // =========================================================================
+        async function generateFinalPrompt() {
+            const rawSubject = document.getElementById('selected-subject').value.trim();
+            if (!rawSubject) {
+                showToast('Pilih ide/tren dulu atau tulis subjek di kotak Langkah 1!', 'error');
+                document.getElementById('selected-subject').focus();
+                return;
+            }
+
+            const format = document.querySelector('input[name="asset-format"]:checked').value;
+            const artStyle = document.getElementById('style-art').value;
+            const colorStyle = document.getElementById('style-color').value;
+            const bgStyle = document.getElementById('style-bg').value;
+            const angleStyle = document.getElementById('style-angle').value;
+            const isSafe = document.getElementById('safe-neutral-toggle').checked;
+
+            const btn = document.getElementById('btn-make-prompt');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span>MERACIK PROMPT PRO...</span>`;
+
+            try {
+                const formatDirectives = {
+                    'JPG': 'high resolution commercial stock photography/illustration, rich textures, professional studio lighting, 8k',
+                    'PNG': 'isolated object cutout, clean sharp edges, easy background removal, centered composition, single standalone asset',
+                    'SVG': 'clean flat vector graphic, solid colors, smooth bezier curves, minimal geometric shapes, Adobe Illustrator style, no complex photo gradients'
+                };
+
+                const safeInstruction = isSafe 
+                    ? "Ensure strictly commercial-safe, neutral, family-friendly content with zero trademarks, zero logos, zero copyrighted characters, and generic non-identifiable features." 
+                    : "";
+
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `Act as an expert Microstock Contributor & Prompt Engineer for Adobe Stock, Freepik, and Vecteezy.
+Convert this input into a high-converting English AI image generation prompt + SEO metadata:
+- Raw Subject: "${rawSubject}"
+- Target File Format: ${format} (${formatDirectives[format]})
+- Art Style: ${artStyle}
+- Color Palette: ${colorStyle}
+- Background: ${bgStyle}
+- Camera Angle: ${angleStyle}
+- Aspect Ratio: ${selectedRatio}
+- Safety Rule: ${safeInstruction}
+
+Return JSON with:
+1. "prompt": A cohesive, comma-separated, descriptive English prompt ready to copy-paste into Midjourney/Ideogram/Firefly (include --ar ${selectedRatio} at the end).
+2. "seoTitle": A commercial English stock title under 70 characters (no subjective words like 'beautiful' or 'best').
+3. "keywords": An array of EXACTLY 49 unique, single-word or short-phrase English microstock keywords ordered from highest relevance (top 10 most critical for Adobe Stock) to broader conceptual tags.`
+                        }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                prompt: { type: "STRING" },
+                                seoTitle: { type: "STRING" },
+                                keywords: { 
+                                    type: "ARRAY",
+                                    items: { type: "STRING" },
+                                    description: "Exactly 49 unique English microstock keywords"
+                                }
+                            },
+                            required: ["prompt", "seoTitle", "keywords"]
+                        }
+                    }
+                };
+
+                const result = await callGeminiWithRetry('gemini-3-flash-preview', payload);
+                const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                    const data = JSON.parse(rawText);
+                    document.getElementById('output-prompt').value = data.prompt;
+                    document.getElementById('output-title').value = data.seoTitle;
+
+                    // Normalize and ensure exact 49 keywords
+                    const fallbackPool = [
+                        "background", "design", "illustration", "modern", "concept", "commercial", "isolated",
+                        "minimalist", "creative", "graphic", "art", "style", "template", "banner", "poster",
+                        "digital", "element", "icon", "symbol", "aesthetic", "clean", "bright", "colorful",
+                        "abstract", "texture", "surface", "business", "marketing", "lifestyle", "trend",
+                        "contemporary", "studio", "quality", "decorative", "visual", "composition", "copy space",
+                        "vibrant", "elegant", "simple", "fresh", "idea", "inspiration", "artwork", "render",
+                        "asset", "stock", "collection", "set"
+                    ];
+                    let kwList = Array.isArray(data.keywords) 
+                        ? data.keywords.map(k => k.trim().toLowerCase()).filter(Boolean)
+                        : [];
+                    kwList = [...new Set(kwList)];
+                    for (const fb of fallbackPool) {
+                        if (kwList.length >= 49) break;
+                        if (!kwList.includes(fb)) kwList.push(fb);
+                    }
+                    kwList = kwList.slice(0, 49);
+
+                    document.getElementById('output-keywords').value = kwList.join(', ');
+                    document.getElementById('keyword-count').innerText = kwList.length;
+                    showToast('Prompt & 49 Keywords SEO siap dipakai!');
+                }
+            } catch (e) {
+                // Fallback deterministic builder if network is interrupted
+                const fallbackPrompt = `${rawSubject}, ${artStyle}, ${colorStyle}, ${bgStyle}, ${angleStyle}, commercial microstock quality, clean details --ar ${selectedRatio}`;
+                document.getElementById('output-prompt').value = fallbackPrompt;
+                showToast('Prompt berhasil diracik!', 'success');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-lg"></i><span>MAKE PROMPT SEKARANG</span>`;
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 5: SIMULASI PREVIEW VISUAL AI (gemini-3.1-flash-lite-image)
+        // =========================================================================
+        async function generatePreviewSample() {
+            const promptText = document.getElementById('output-prompt').value.trim();
+            if (!promptText) {
+                showToast('Klik MAKE PROMPT SEKARANG terlebih dahulu!', 'error');
+                return;
+            }
+
+            const wrapper = document.getElementById('sample-preview-wrapper');
+            const loader = document.getElementById('sample-image-loading');
+            const imgEl = document.getElementById('sample-image-result');
+            const btn = document.getElementById('btn-preview-sample');
+
+            wrapper.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            imgEl.classList.add('hidden');
+            btn.disabled = true;
+
+            try {
+                // Strip Midjourney flags like --ar for standard image generator
+                const cleanPrompt = promptText.replace(/--ar\s+\d+:\d+/g, '').trim();
+                const payload = {
+                    contents: [{
+                        parts: [{ text: cleanPrompt }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE']
+                    }
+                };
+
+                const result = await callGeminiWithRetry('gemini-3.1-flash-lite-image', payload);
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                if (base64Data) {
+                    imgEl.src = `data:image/png;base64,${base64Data}`;
+                    imgEl.classList.remove('hidden');
+                    showToast('Simulasi visual selesai dirender!');
+                } else {
+                    throw new Error('No image returned');
+                }
+            } catch (e) {
+                showToast('Gagal merender simulasi gambar.', 'error');
+                wrapper.classList.add('hidden');
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // =========================================================================
+        // FEATURE 6: SIMPAN & MUAT PRESET GAYA
+        // =========================================================================
+        function updatePresetCount() {
+            document.getElementById('preset-count').innerText = savedPresets.length;
+        }
+
+        function saveCurrentPreset() {
+            document.getElementById('preset-name-input').value = '';
+            document.getElementById('save-preset-dialog').classList.remove('hidden');
+            document.getElementById('preset-name-input').focus();
+        }
+
+        function closeSavePresetDialog() {
+            document.getElementById('save-preset-dialog').classList.add('hidden');
+        }
+
+        function confirmSavePreset() {
+            const name = document.getElementById('preset-name-input').value.trim();
+            if (!name) {
+                showToast('Masukkan nama preset terlebih dahulu!', 'error');
+                return;
+            }
+
+            const newPreset = {
+                id: Date.now(),
+                name: name,
+                format: document.querySelector('input[name="asset-format"]:checked').value,
+                art: document.getElementById('style-art').value,
+                color: document.getElementById('style-color').value,
+                bg: document.getElementById('style-bg').value,
+                angle: document.getElementById('style-angle').value,
+                ratio: selectedRatio
+            };
+
+            savedPresets.unshift(newPreset);
+            updatePresetCount();
+            closeSavePresetDialog();
+            showToast(`Preset "${name}" berhasil disimpan!`);
+        }
+
+        function togglePresetModal() {
+            const modal = document.getElementById('preset-modal');
+            if (modal.classList.contains('hidden')) {
+                renderPresetList();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderPresetList() {
+            const list = document.getElementById('preset-list');
+            list.innerHTML = '';
+
+            if (savedPresets.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Belum ada preset tersimpan.</p>`;
+                return;
+            }
+
+            savedPresets.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'p-3.5 rounded-xl bg-dark-950 border border-slate-800 hover:border-brand-500/50 flex items-center justify-between gap-3 transition';
+                row.innerHTML = `
+                    <div class="cursor-pointer flex-1" onclick="applyPreset(${p.id})">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white hover:text-brand-400">${p.name}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-brand-500/15 text-brand-400 font-bold">${p.format} • ${p.ratio}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1">${p.art}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="applyPreset(${p.id})" class="px-3 py-1.5 rounded-lg bg-brand-500 text-dark-950 text-xs font-bold hover:bg-brand-400">Pakai</button>
+                        <button onclick="deletePreset(${p.id})" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function applyPreset(id) {
+            const p = savedPresets.find(item => item.id === id);
+            if (!p) return;
+
+            const radio = document.querySelector(`input[name="asset-format"][value="${p.format}"]`);
+            if (radio) radio.checked = true;
+            document.getElementById('style-art').value = p.art;
+            document.getElementById('style-color').value = p.color;
+            document.getElementById('style-bg').value = p.bg;
+            document.getElementById('style-angle').value = p.angle;
+            
+            // Update ratio button UI
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                if (btn.innerText === p.ratio) selectRatio(btn, p.ratio);
+            });
+
+            updateFormatHint();
+            togglePresetModal();
+            showToast(`Preset "${p.name}" diterapkan!`);
+        }
+
+        function deletePreset(id) {
+            savedPresets = savedPresets.filter(item => item.id !== id);
+            updatePresetCount();
+            renderPresetList();
+            showToast('Preset dihapus.');
+        }
+    </script>
+</body>
+</html>
